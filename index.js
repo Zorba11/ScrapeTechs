@@ -40,9 +40,16 @@ async function scrapeListings (page) {
 }
 
 async function scrapeJobDescriptions (listings, page) {
-  for(var i = 0; i < listings.lenghth; i++) {
+  for(var i = 0; i < listings.length; i++) {
     await page.goto(listings[i].url);
     const html = await page.content();
+    const $ = cheerio.load(html);
+
+    const jobDescription = $("#postingbody").text();
+    const compensation = $("p.attrgroup").text().trim().replace(/\s/g, "").replace("emp",",emp");
+    listings[i].jobDescription = jobDescription;
+    listings[i].compensation = compensation;
+    console.log(listings[i].compensation );
     // to limit the number of request per second
     await sleep(1000);
   }
