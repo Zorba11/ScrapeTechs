@@ -1,8 +1,9 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
+const mongoose = require('mongoose');
+const Listing = require('./model/Listing');
 
 // Data structure sample
-
 const scrapingResults = [
   {
     title: "Senior Contact Centre Business Systems Analyst ",
@@ -12,7 +13,12 @@ const scrapingResults = [
     jobDescription: "MAXIMUS Canada is an industry leader in the provisioning of products and services to support the delivery of government services in North America and internationally. With ",
     compensation: "upto US$0.00 per year"
   }
-]
+];
+
+async function connectToMongoDb() {
+  await mongoose.connect('mongodb+srv://craigsListUser:superStrongPassword1@craigslist-gxd9w.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true });
+  console.log("connected to MongoDB..");
+}
 
 async function scrapeListings (page) {
    //go to the address
@@ -51,6 +57,8 @@ async function scrapeJobDescriptions (listings, page) {
     listings[i].compensation = compensation;
     console.log(listings[i].compensation );
     // to limit the number of request per second
+    const listingModel = new Listing(listings[i]);
+    await listingModel.save();
     await sleep(1000);
   }
 }
@@ -61,6 +69,7 @@ async function sleep (milliseconds) {
 }
 
 async function main() {
+  await connectToMongoDb();
   //launch browser
   const browser = await puppeteer.launch({headless: false});
   //open a newtab
